@@ -363,19 +363,16 @@ public class EntryPoint {
     {
         string[] paramNames = { "Enable_0", "Enable_1", "Enable_2", "Enable_3", "Enable_4" };
 
-        int mask = 1;
-
-        foreach (string paramName in paramNames)
+        for (int i = 0; i < paramNames.Length; ++i)
         {
-            OFXBooleanParameter param = fx.FindParameterByName(paramName) as OFXBooleanParameter;
+            int BITMASK_NUMBER = (int) Math.Pow(2, i);
+
+            OFXBooleanParameter param = fx.FindParameterByName(paramNames[i]) as OFXBooleanParameter;
 
             if (param.Value)
             {
-                MASK_BITMASK += mask;
+                MASK_BITMASK += BITMASK_NUMBER;
             }
-
-            mask = mask * 2;
-
         }
     }
 
@@ -394,10 +391,16 @@ public class EntryPoint {
 
         string[] mask_choices = { "Mask 1", "Mask 2", "Mask 3", "Mask 4", "Mask 5" };
 
-        foreach (string s in mask_choices)
+        for (int i = 0; i < mask_choices.Length; ++i)
         {
-            MaskChoices.Items.Add(s);
+            int BITMASK_NUMBER = (int) Math.Pow(2, i);
+
+            if ((MASK_BITMASK & BITMASK_NUMBER) != 0)
+            {
+                MaskChoices.Items.Add(mask_choices[i]);
+            }
         }
+        MaskChoices.SelectedIndex = 0;
 
         Button Done = new Button();
         Done.Click += (s, g) => { Button b = (Button)s; Form f = (Form)b.Parent; f.Close(); };
@@ -415,7 +418,10 @@ public class EntryPoint {
 
         if (MaskChoices.SelectedIndex >= 0)
         {
-            int BITMASK_NUMBER = (int) Math.Pow(2, (MaskChoices.SelectedIndex));
+            string selectedText = MaskChoices.SelectedItem.ToString();
+            char last_char = selectedText[selectedText.Length - 1];
+            int selectedMask = int.Parse(last_char.ToString()) - 1;
+            int BITMASK_NUMBER = (int) Math.Pow(2, (selectedMask));
 
             /*
              * MessageBox.Show("Selected Index: " + MaskChoices.SelectedIndex.ToString() + "\n"
@@ -426,68 +432,16 @@ public class EntryPoint {
 
             if ((MASK_BITMASK & BITMASK_NUMBER) == 0)
             {
-                MessageBox.Show("This Mask is not enabled!\n\nTerminating...", "Wrong Mask", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("This Mask is not enabled, or you have selected this Mask twice!\n\nTerminating...", "Wrong Mask", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return -1;
             }
 
-            return MaskChoices.SelectedIndex;
+            MASK_BITMASK -= BITMASK_NUMBER;
+
+            return selectedMask;
         }
 
         return -1;
-    }
-
-    private string PromptForCorner()
-    {
-        Form QuestionForm = new Form();
-        QuestionForm.Text = "Corner Selection";
-        Label labelCornerChoice = new Label();
-        labelCornerChoice.Text = "Choose a corner to copy to:";
-        labelCornerChoice.Location = new Point(1, 1);
-        labelCornerChoice.Size = new Size(200, labelCornerChoice.Size.Height);
-
-        ComboBox CornerChoices = new ComboBox();
-
-        CornerChoices.Location = new Point(1, labelCornerChoice.Location.Y + labelCornerChoice.Height + 5);
-
-        string[] corner_choices = { "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
-
-        foreach (string s in corner_choices)
-        {
-            CornerChoices.Items.Add(s);
-        }
-
-        Button Done = new Button();
-        Done.Click += (s, g) => { Button b = (Button)s; Form f = (Form)b.Parent; f.Close(); };
-        CornerChoices.KeyDown += (s, g) => { if (g.KeyCode == Keys.Enter) { ComboBox cb = (ComboBox)s; Form f = (Form)cb.Parent; f.Close(); } };
-        Done.Text = "Done";
-        Done.Location = new Point(1, CornerChoices.Location.Y + CornerChoices.Height + 5); ;
-        QuestionForm.Controls.Add(CornerChoices);
-        QuestionForm.Controls.Add(Done);
-        QuestionForm.Controls.Add(labelCornerChoice);
-        QuestionForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-        QuestionForm.AutoSize = true;
-        QuestionForm.Height = Done.Location.Y + Done.Height + 5; //This is too small for the form, it autosizes to "big enough"
-        QuestionForm.Width = CornerChoices.Location.X + CornerChoices.Width + 5;
-        QuestionForm.ShowDialog();
-
-        if (CornerChoices.SelectedIndex >= 0)
-        {
-            switch (CornerChoices.SelectedIndex)
-            {
-                case 0:
-                    return "CornerTL";
-                case 1:
-                    return "CornerTR";
-                case 2:
-                    return "CornerBL";
-                case 3:
-                    return "CornerBR";
-                default:
-                    return null;
-            }
-        }
-
-        return null;
     }
 
     private void show_fx_parameters(OFXEffect fx)
