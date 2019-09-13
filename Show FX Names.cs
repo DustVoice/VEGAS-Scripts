@@ -77,7 +77,7 @@ public class EntryPoint {
         {
             foreach (Effect fx in videoEvent.Effects)
             {
-                effectNames = fx.Description + "\n";
+                effectNames += fx.Description + "\n";
             }
         }
 
