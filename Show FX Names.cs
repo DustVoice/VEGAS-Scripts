@@ -72,7 +72,7 @@ public class EntryPoint {
 
     private VideoEvent ShowFXNames(VideoEvent[] ve)
     {
-        string effectNames = new string();
+        string effectNames = "";
         foreach (VideoEvent videoEvent in ve)
         {
             foreach (Effect fx in videoEvent.Effects)
